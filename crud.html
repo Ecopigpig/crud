@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script> -->
+    <script src="./jquery-3.4.1.min.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>
+        CRUD
+    </title>
+</head>
+<style>
+    table,table tr th, table tr td { border:1px solid #0094ff; }
+    table { width: 600px; min-height: 25px; line-height: 25px; text-align: center; border-collapse: collapse;}   
+</style>
+<body>
+<div>
+    <table id="userInfo">
+        <tr>
+            <th>ID</th>
+            <th>用户名</th>
+            <th>账号状态</th>
+            <th>操作</th>
+        </tr>
+    </table>
+    <div id="show"></div>
+</div>
+</body>
+<script>
+$(function () {
+    to_page(1,20);
+    
+    function to_page(pn,psize) {
+        var data = {
+            "page":pn,
+            "size":psize
+        }
+    $.ajax({
+        url: "http://localhost:8089/user/listAllUsers",
+        data: JSON.stringify(data),
+        type: "POST",
+        dataType: "json",
+        contentType:"application/json",
+        success: function (res) {
+            if(res.msg==true){
+                let userLisst = res.data.list;
+                //遍历元素
+                $.each(userLisst, function (index, item) {
+                    let str = "<tr><td>"+item.id+"</td>"
+                    str += "<td>"+item.username+"</td>"
+                    if(item.status==0){
+                        str += "<td>启用</td>"
+                    }else{
+                        str += "<td>停用</td>"
+                    }
+                    str += "<td><button class=\"add\">增加</button>用户名为<input id=\"username\"/>的用户<br>"
+                        +"<button class=\"del\">删除该用户</button><br><button class=\"find\">查找</button>用户名为<input id=\"username2\"/>的用户<br><button class=\"change\">更改状态</button></td></tr>"
+                    $("#userInfo").append(str);
+                })
+            }
+        }
+    })
+    }
+})
+$(document).on("click", ".add", function () {
+    var username = $("#username").val();
+    $.ajax({
+        url: "http://localhost:8089/user/registerAccount",
+        data: {
+            "username":username
+        },
+        type: "POST",
+        dataType: "json",
+        success: function (res) {
+            if(res.msg==true){
+                location.reload()
+            }else{
+                alert("添加失败")
+            }
+        },
+        error:function(res){
+            alert("请求失败！")
+        }
+    })
+})
+$(document).on("click", ".del", function () {
+    let index = $(this).parents("tr").find("td:eq(0)").text();
+    $.ajax({
+        url: "http://localhost:8089/user/deleteUser",
+        data: {
+            "id":index
+        },
+        type: "POST",
+        dataType: "json",
+        success: function (res) {
+            if(res.msg==true){
+                location.reload()
+            }else{
+                alert("删除失败")
+            }
+        },
+        error:function(res){
+            alert("请求失败！")
+        }
+    })
+})
+$(document).on("click", ".find", function () {
+    var username = $("#username2").val();
+    $.ajax({
+        url: "http://localhost:8089/user/findUser",
+        data: {
+            "username":username
+        },
+        type: "POST",
+        dataType: "json",
+        success: function (res) {
+            if(res.msg==true){
+                alert("成功")
+                let str = "成功找到用户"+res.data.id+"："+res.data.username
+                $("#show").append(str)
+                location.href = "#show";  
+            }else{
+                alert("查找失败")
+            }
+        },
+        error:function(res){
+            alert("请求失败！")
+        }
+    })   
+})
+$(document).on("click", ".change", function () {
+    let index = $(this).parents("tr").find("td:eq(0)").text();
+    $.ajax({
+        url: "http://localhost:8089/user/changeUserStatus",
+        data: {
+            "userId":index
+        },
+        type: "POST",
+        dataType: "json",
+        success: function (res) {
+            if(res.msg==true){
+                alert("成功改变账号状态")
+                location.reload()
+            }else{
+                alert("改变失败")
+            }
+        },
+        error:function(res){
+            alert("请求失败！")
+        }
+    })   
+})
+</script>
+</html>
